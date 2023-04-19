@@ -1,0 +1,23 @@
+{
+  "name": "simple-nodejs-express-app",
+  "version": "1.0.0",
+  "description": "**Assignment 2: Secure Web Programming and Node.js - Question 3**",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dscatalan/simple-nodejs-express-app.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dscatalan/simple-nodejs-express-app/issues"
+  },
+  "homepage": "https://github.com/dscatalan/simple-nodejs-express-app#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
