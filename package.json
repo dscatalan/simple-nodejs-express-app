@@ -4,7 +4,7 @@
   "description": "**Assignment 2: Secure Web Programming and Node.js - Question 3**",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,6 +18,11 @@
   },
   "homepage": "https://github.com/dscatalan/simple-nodejs-express-app#readme",
   "dependencies": {
+    "ejs": "^3.1.9",
     "express": "^4.18.2"
+  },
+  "volta": {
+    "node": "18.14.0",
+    "npm": "9.3.1"
   }
 }
