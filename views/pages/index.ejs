@@ -1,20 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-900">
 
 <head>
     <%- include('../partials/head'); %>
 </head>
 
-<body>
+<body class="h-full"> 
     <header>
         <%- include('../partials/header'); %>
     </header>
 
     <main>
-        <h1>Simple Node.js Express App MAIN AREA INDEX</h1>
+        <!-- Component: HERO -->
+        <!-- https://tailblocks.cc/ (2nd Option)-->
+        <section class="text-gray-400 bg-gray-900 body-font">
+            <div class="container mx-auto flex px-5 py-24 items-center justify-center flex-col">
+                <img class="lg:w-2/6 md:w-3/6 w-5/6 mb-10 object-cover object-center rounded" alt="hero"
+                    src="https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2">
+                <div class="text-center lg:w-2/3 w-full">
+                    <h1 class="title-font sm:text-4xl text-3xl mb-4 font-medium text-white">Assignment 2: Secure Web
+                        Programming and Node.js</h1>
+                    <p class="leading-relaxed mb-8">Question 3: "In this exercise you will get some hands on experience
+                        in secure webapp development practices package installation in node.js, and OWASP password
+                        security." - Mikhail Gofman</p>
+                    <div class="flex justify-center">
+                        <a href="/login"
+                            class="inline-flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Log
+                            In</a>
+                        <a href="/signup"
+                            class="ml-4 inline-flex text-gray-400 bg-gray-800 border-0 py-2 px-6 focus:outline-none hover:bg-gray-700 hover:text-white rounded text-lg">Sign
+                            Up</a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <footer>
+    <footer class="md:fixed bottom-0">
         <%- include('../partials/footer');%>
     </footer>
 </body>

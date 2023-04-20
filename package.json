@@ -2,9 +2,12 @@
   "name": "simple-nodejs-express-app",
   "version": "1.0.0",
   "description": "**Assignment 2: Secure Web Programming and Node.js - Question 3**",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "express": "node server.js",
+    "browser-sync": "browser-sync start --proxy 'localhost:3000' --serveStatic 'static/**/*.css' --files 'views/**/*.ejs' --watch",
+    "tailwind": "npx tailwindcss -i static/tailwind.css -o static/style.css -w -p",
+    "start": "npm-run-all --parallel express tailwind browser-sync",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,11 +21,18 @@
   },
   "homepage": "https://github.com/dscatalan/simple-nodejs-express-app#readme",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "ejs": "^3.1.9",
     "express": "^4.18.2"
   },
   "volta": {
     "node": "18.14.0",
     "npm": "9.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.3",
+    "browser-sync": "^2.29.1",
+    "npm-run-all": "^4.1.5",
+    "tailwindcss": "^3.3.1"
   }
 }
