@@ -1,2 +1,14 @@
 
-daisy;mypassword
+daisy;daisy
+john;A@2asdF2020!!*
+amanda;Mhf47DkF35P36MfY^w&%
+bob;*T*j8X#X4TZiCeR3J%*P
+jane;4Cd79f%bxu@6C^5rjBE8
+&lt;script>alert(1)&lt;/script>;R!w27@Xkw^kWuns2%iC!
+max;3Gahh3A7sHTec$m82R#B
+hank;Y56W5A@7#u9c&rmu4!rE
+test;j9CQ9bBK3!XT#nNR@c#G
+carl;7@5p%LybuLZ7D4GhU!p6
+ronny;jJ43QowTKsid*ZZHQ!4G
+frank;@Tuk$^2U5j3#7K9W7H%p
+arnold;9NTbq#CNa4&5T4X8^9So
