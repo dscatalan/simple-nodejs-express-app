@@ -112,7 +112,7 @@ app.post("/login", function (req, res) {
       let password = tokenizedData[i].split(";")[1];
 
       // Check the user name and password
-      if (req.body.username == userName && req.body.password == password) {
+      if (xssFilters.inDoubleQuotedAttr(req.body.username) == userName && xssFilters.inDoubleQuotedAttr(req.body.password) == password) {
         // We have a match!
         credMath = true;
       }
@@ -186,7 +186,7 @@ app.get("/app", (req, res) => {
 // Handles the form
 app.post("/app", (req, res) => {
   // Save the data to to the comments file
-  fs.appendFile("notes.txt", req.body.comment + "\n", function (error) {
+  fs.appendFile("notes.txt", xssFilters.inHTMLData(req.body.comment) + "\n", function (error) {
     // Error checks
     if (error) throw error;
 
