@@ -24,5 +24,8 @@
 
 # Notes
 
+```shell
+npm start
+```
 
 
