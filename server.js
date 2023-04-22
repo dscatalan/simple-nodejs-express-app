@@ -68,7 +68,7 @@ function generateAndSendNotes(res) {
     pageStr += notesData;
 
     // Send the page
-    res.render("pages/app", {pageStr: pageStr});
+    res.render("pages/app", { pageStr: pageStr });
   });
 }
 

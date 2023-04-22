@@ -14,11 +14,13 @@
         <h1 class="title-font sm:text-4xl text-3xl mb-4 font-medium text-white">APP</h1>
         <div id="root"></div>
         <form action="/app" method="POST">
-            <label for="note">Note:</label>
-            <textarea id="note" name="note" placeholder="Whats on your mind?"></textarea><br><br>
-            <input type="submit" value="save note" />
+            <label for="note" class="text-white">New Note:</label>
+            <br>
+            <textarea id="note" name="note" placeholder="Whats on your mind?"></textarea>
+            <br>
+            <input type="submit" value="Save Note" class="font-semibold leading-6 text-indigo-400 hover:text-indigo-300" />
         </form>
-        <div id="root">
+        <div id="root" class="text-white">
             <% if (pageStr) { %>
                 <%- pageStr %>
                     <% } %>
