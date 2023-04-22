@@ -1,24 +1,31 @@
 "use strict";
 
-// import the express framework
+// IMPORTS
 const express = require("express");
-
 const fs = require("fs");
-
 const bodyParser = require("body-parser");
-
 const { passwordStrength } = require("check-password-strength");
-
 const xssFilters = require("xss-filters");
+const sessions = require("client-sessions");
 
 // create an instance of the express app
 const app = express();
-const port = 3000;
 
+//
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // instruct express to set the view engine to ejs
 app.set("view engine", "ejs");
+
+// middleware for cookie named session
+app.use(
+  sessions({
+    cookieName: "session",
+    secret: "random_string_goes_here",
+    duration: 30 * 60 * 1000,
+    activeDuration: 5 * 60 * 1000,
+  })
+);
 
 // *************** HELPER FUNCTIONS ***************
 
@@ -33,9 +40,21 @@ function parseDB(dbFile) {
   });
 }
 
+// Replaces all elements of the string
+// @param src - the string on which to perform the replacement
+// @param search - what to look for
+// @param replacement - what to replace with
+function replaceAll(src, search, replacement) {
+  return src.replace(new RegExp(search, "g"), replacement);
+}
+
 // *************** STATIC ENDPOINTS ***************
+
+// send the static style sheet (called in .../partials/head.ejs)
 app.get("/static/style.css", (req, res) => {
-  res.sendFile(__dirname + "/static/style.css");
+  res.sendFile(
+    __dirname + xssFilters.uriInDoubleQuotedAttr("/static/style.css")
+  );
 });
 
 // *************** HOME ENDPOINT ***************
@@ -45,7 +64,80 @@ app.get("/static/style.css", (req, res) => {
 // @param req - the request
 // @param res - the response
 app.get("/", function (req, res) {
-  res.render("pages/index");
+  if (req.session.username) {
+    res.redirect("/app");
+  } else {
+    res.render("pages/index");
+  }
+});
+
+// *************** APP ENDPOINTS ***************
+// internal guestbook example from xss_codes/
+
+// Generates and sends the HTML page
+// @param response - the response object to use for replying
+function generateAndSendPage(response) {
+  // Read the comments file
+  // @error - if there an error
+  // @data - the data read
+  fs.readFile("notes.txt", function (error, data) {
+    // If the read fails
+    if (error) throw error;
+
+    // The comments data
+    let commentsData = "" + data;
+
+    // Replace the newlines with HTML <br>
+    commentsData = replaceAll(commentsData, "\n", "<br>");
+
+    let pageStr = "	<!DOCTYPE html>";
+    pageStr += "	<html>";
+    pageStr += "	<head>";
+    pageStr += "		<title>App </title>";
+    pageStr += "	</head>";
+    pageStr += "	<body bgcolor=white>";
+    pageStr += "	   <h1>App</h1><br>";
+    pageStr += commentsData;
+    pageStr += "	    <form action='/app' method='post'>";
+    pageStr += "        	    <label for='comment'>Note:</label>";
+    pageStr +=
+      "	            <textarea id='comment' name='comment' placeholder='Whats on your mind?'></textarea><br><br>";
+    pageStr += "        	    <input type='submit' value='Save Note' />";
+    pageStr += "	    </form>";
+    pageStr += "	</body>";
+    pageStr += "</html>	";
+
+    // Send the page
+    response.send(pageStr);
+  });
+}
+
+// the app page
+// @param req - the request
+// @param res - the response
+app.get("/app", (req, res) => {
+  // if user is logged in show main app
+  if (req.session.username) {
+    // Generate the page
+    generateAndSendPage(res);
+  } else {
+    res.redirect("/");
+  }
+});
+
+// create a new note in main app
+app.post("/app", (req, res) => {
+  // Save the data to to the comments file
+  fs.appendFile(
+    "notes.txt",
+    xssFilters.inHTMLData(req.body.comment) + "\n",
+    function (error) {
+      // Error checks
+      if (error) throw error;
+
+      generateAndSendPage(res);
+    }
+  );
 });
 
 // *************** SIGNUP ENDPOINTS ***************
@@ -89,111 +181,73 @@ app.post("/signup", (req, res) => {
 
 // login page (method: GET)
 app.get("/login", (req, res) => {
-  res.render("pages/login", { loggedIn: true, username: req.body.username });
+  res.render("pages/login");
 });
 
 // login page (method: POST)
 // The handler for the request of the login page
 // @param req - the request
 // @param res - the response
-app.post("/login", function (req, res) {
-  // Read the file
-  fs.readFile("database.txt", "utf8", function (error, data) {
-    // Split the data
-    let tokenizedData = data.split("\n");
+app.post("/login", (req, res) => {
+  // save the user's login form input for login and password fields
+  let loginUsername = xssFilters.inDoubleQuotedAttr(req.body.username);
+  let loginPassword = xssFilters.inDoubleQuotedAttr(req.body.password);
+
+  // Read the "database" file
+  fs.readFile("database.txt", "utf8", (error, data) => {
+    // throw error if readFile fails to read the file
+    if (error) throw error;
+
+    // Split the database.txt by line
+    let tokenizedDatabase = data.split("\n");
 
     // Match the credentials
-    let credMath = false;
+    let credMatch = false;
 
-    // Add the HTML; match the password while you are at it
-    for (let i = 0; i < tokenizedData.length; i++) {
-      // Get the user name and password
-      let userName = tokenizedData[i].split(";")[0];
-      let password = tokenizedData[i].split(";")[1];
+    // loop through usernames and passwords to try to find match to login info
+    for (let i = 0; i < tokenizedDatabase.length; i++) {
+      // save the database username and password at the current index i
+      // example: user;password
+      let databaseUsername = tokenizedDatabase[i].split(";")[0];
+      let databasePassword = tokenizedDatabase[i].split(";")[1];
 
-      // Check the user name and password
-      if (xssFilters.inDoubleQuotedAttr(req.body.username) == userName && xssFilters.inDoubleQuotedAttr(req.body.password) == password) {
+      // Check the username and password against user's login request
+      if (
+        loginUsername == databaseUsername &&
+        loginPassword == databasePassword
+      ) {
         // We have a match!
-        credMath = true;
+        credMatch = true;
       }
     }
 
-    // Credentials did not match? Do not display the page
-    if (credMath == false) {
-      res.send("bad login info");
-    } else {
+    if (credMatch === true) {
+      // login successful
+
+      // set cookie
+      req.session.username = req.body.username;
+
+      // redirect to main app page
       res.redirect("/app");
+    } else {
+      // Credentials did not match? Do not display the main app page.
+      res.send("LOGIN UNSUCCESSFUL. TRY AGAIN.");
     }
   });
 });
 
-// *************** APP ENDPOINTS ***************
-// internal guestbook example from xss_codes/
+// The logout endpoint
+// @param req - the request
+// @param res - the response
+app.get("/logout", (req, res) => {
+  // kill the session cookie
+  req.session.reset();
 
-// app page (method: GET)
-// Replaces all elements of the string
-// @param src - the string on which to perform the replacement
-// @param search - what to look for
-// @param replacement - what to replace with
-function replaceAll(src, search, replacement) {
-  return src.replace(new RegExp(search, "g"), replacement);
-}
-
-// Generates and sends the HTML page
-// @param response - the response object to use for replying
-function generateAndSendPage(response) {
-  // Read the comments file
-  // @error - if there an error
-  // @data - the data read
-  fs.readFile("notes.txt", function (error, data) {
-    // If the read fails
-    if (error) throw error;
-
-    // The comments data
-    let commentsData = "" + data;
-
-    // Replace the newlines with HTML <br>
-    commentsData = replaceAll(commentsData, "\n", "<br>");
-
-    let pageStr = "	<!DOCTYPE html>";
-    pageStr += "	<html>";
-    pageStr += "	<head>";
-    pageStr += "		<title>App </title>";
-    pageStr += "	</head>";
-    pageStr += "	<body bgcolor=white>";
-    pageStr += "	   <h1>App</h1><br>";
-    pageStr += commentsData;
-    pageStr += "	    <form action='/app' method='post'>";
-    pageStr += "        	    <label for='comment'>Note:</label>";
-    pageStr +=
-      "	            <textarea id='comment' name='comment' placeholder='Whats on your mind?'></textarea><br><br>";
-    pageStr += "        	    <input type='submit' value='Save Note' />";
-    pageStr += "	    </form>";
-    pageStr += "	</body>";
-    pageStr += "</html>	";
-
-    // Send the page
-    response.send(pageStr);
-  });
-}
-
-// Handles the sending of the index
-app.get("/app", (req, res) => {
-  // Generate the page
-  generateAndSendPage(res);
+  // redirect to home page
+  res.redirect("/");
 });
 
-// Handles the form
-app.post("/app", (req, res) => {
-  // Save the data to to the comments file
-  fs.appendFile("notes.txt", xssFilters.inHTMLData(req.body.comment) + "\n", function (error) {
-    // Error checks
-    if (error) throw error;
+let localHost = xssFilters.uriInDoubleQuotedAttr("http://localhost:");
+const port = 3000;
 
-    generateAndSendPage(res);
-  });
-});
-
-app.listen(port, () =>
-  console.log(`App listening at http://localhost:${port}/`)
-);
+app.listen(port, () => console.log(`App listening at ${localHost}${port}/`));
