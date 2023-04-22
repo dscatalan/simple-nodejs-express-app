@@ -48,6 +48,30 @@ function replaceAll(src, search, replacement) {
   return src.replace(new RegExp(search, "g"), replacement);
 }
 
+// Generates and sends the notes
+// @param response - the response object to use for replying
+function generateAndSendNotes(res) {
+  // Read the comments file
+  // @error - if there an error
+  // @data - the data read
+  fs.readFile("notes.txt", function (error, data) {
+    // If the read fails
+    if (error) throw error;
+
+    // The comments data
+    let notesData = "" + data;
+
+    // Replace the newlines with HTML <br>
+    notesData = replaceAll(notesData, "\n", "<br>");
+
+    let pageStr = "";
+    pageStr += notesData;
+
+    // Send the page
+    res.render("pages/app", {pageStr: pageStr});
+  });
+}
+
 // *************** STATIC ENDPOINTS ***************
 
 // send the static style sheet (called in .../partials/head.ejs)
@@ -74,44 +98,6 @@ app.get("/", function (req, res) {
 // *************** APP ENDPOINTS ***************
 // internal guestbook example from xss_codes/
 
-// Generates and sends the HTML page
-// @param response - the response object to use for replying
-function generateAndSendPage(response) {
-  // Read the comments file
-  // @error - if there an error
-  // @data - the data read
-  fs.readFile("notes.txt", function (error, data) {
-    // If the read fails
-    if (error) throw error;
-
-    // The comments data
-    let commentsData = "" + data;
-
-    // Replace the newlines with HTML <br>
-    commentsData = replaceAll(commentsData, "\n", "<br>");
-
-    let pageStr = "	<!DOCTYPE html>";
-    pageStr += "	<html>";
-    pageStr += "	<head>";
-    pageStr += "		<title>App </title>";
-    pageStr += "	</head>";
-    pageStr += "	<body bgcolor=white>";
-    pageStr += "	   <h1>App</h1><br>";
-    pageStr += commentsData;
-    pageStr += "	    <form action='/app' method='post'>";
-    pageStr += "        	    <label for='comment'>Note:</label>";
-    pageStr +=
-      "	            <textarea id='comment' name='comment' placeholder='Whats on your mind?'></textarea><br><br>";
-    pageStr += "        	    <input type='submit' value='Save Note' />";
-    pageStr += "	    </form>";
-    pageStr += "	</body>";
-    pageStr += "</html>	";
-
-    // Send the page
-    response.send(pageStr);
-  });
-}
-
 // the app page
 // @param req - the request
 // @param res - the response
@@ -119,7 +105,7 @@ app.get("/app", (req, res) => {
   // if user is logged in show main app
   if (req.session.username) {
     // Generate the page
-    generateAndSendPage(res);
+    generateAndSendNotes(res);
   } else {
     res.redirect("/");
   }
@@ -130,12 +116,12 @@ app.post("/app", (req, res) => {
   // Save the data to to the comments file
   fs.appendFile(
     "notes.txt",
-    xssFilters.inHTMLData(req.body.comment) + "\n",
+    xssFilters.inHTMLData(req.body.note) + "\n",
     function (error) {
       // Error checks
       if (error) throw error;
 
-      generateAndSendPage(res);
+      generateAndSendNotes(res);
     }
   );
 });
